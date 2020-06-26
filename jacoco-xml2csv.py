@@ -154,13 +154,16 @@ class JacocoXmlContentHandler(xml.sax.ContentHandler):
         self._method = None
 
     def startDocument(self):
-        #self._fp = open(self._outfile, 'w')
-        self._fp = sys.stdout
+        if self._outfile is not None:
+            self._fp = open(self._outfile, 'w')
+        else:
+            self._fp = sys.stdout
         self.__print(self.__formatHeader())
         return super().startDocument()
 
     def endDocument(self):
-        #self._fp.close()
+        if self._outfile is not None:
+            self._fp.close()
         return super().endDocument()
 
     def startElement(self, name, attrs):
@@ -256,14 +259,6 @@ class JacocoXmlContentHandler(xml.sax.ContentHandler):
     def __formatHeader(cls):
         return ','.join(cls._hdr)
     
-    @classmethod
-    def __coverage(cls, counter):
-        if counter is None:
-            return 'n/a'
-        covered = int(counter['covered'])
-        missed = int(counter['missed'])
-        return '{:.1f}'.format(float(covered / (covered + missed) * 100))
-
     def __print(self, text):
         self._fp.write(text)
         self._fp.write('\n')
@@ -271,7 +266,8 @@ class JacocoXmlContentHandler(xml.sax.ContentHandler):
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else 'jacoco.xml'
-    handler = JacocoXmlContentHandler(target)
+    outfile = sys.argv[2] if len(sys.argv) > 2 else None
+    handler = JacocoXmlContentHandler(outfile)
     xml.sax.parse(target, handler)
         
 
